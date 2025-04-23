@@ -48,9 +48,25 @@ if start and username:
     per_second = hourly_wage / 3600
 
     # Start live earnings
+    update_interval = 30  # seconds
+    last_save_time = time.time()
+
     while True:
         earned += per_second
         placeholder.markdown(f"### You've earned: **${earned:.2f}**")
-        sheet.update_cell(row_index, 3, earned)
-        sheet.update_cell(row_index, 4, datetime.now().isoformat())
+
+        # update entire sheet every 30 seconds
+        if time.time() - last_save_time > update_interval:
+            sheet.batch_update([
+                {
+                    'range': f'C{row_index}',  # earned
+                    'values': [[earned]]
+                },
+                {
+                    'range': f'D{row_index}',  # last_updated
+                    'values': [[datetime.now().isoformat()]]
+                }
+            ])
+            last_save_time = time.time()
+
         time.sleep(1)
